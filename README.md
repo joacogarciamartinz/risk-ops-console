@@ -40,3 +40,22 @@ Curva de Precisión-Recall: Crucial para ajustar el umbral de "falsos positivos"
 
 ## 💡 Nota de Risk Ops:
 Recuerda que el análisis de "velocidad" es dinámico. Si un usuario realiza más de 5 intentos en menos de 10 minutos, el sistema elevará el nivel de riesgo independientemente del monto.
+
+
+## 🛠️ Instalación y Uso Rápido
+
+Este repositorio ya incluye los modelos entrenados en la carpeta `/models`, por lo que no es necesario descargar el dataset original para probar la herramienta.
+
+1. **Clonar el repositorio:**
+   git clone [https://github.com/tu-usuario/risk-ops-console.git](https://github.com/tu-usuario/risk-ops-console.git)
+   cd risk-ops-console
+
+2. **Crear entorno virtual (Recomendado Python 3.10 o 3.11):**
+python -m venv venv
+.\venv\Scripts\activate   # En Mac: source venv/bin/activate
+
+3. **Instalar dependencias:**
+pip install -r requirements.txt
+
+4. **Lanzar la Consola Visual:**
+python dashboard.py
