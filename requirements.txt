@@ -1,7 +1,15 @@
-joblib
+# Core Data Science
 pandas
 numpy
-tensorflow
 matplotlib
+seaborn
+
+# Machine Learning & AI
 scikit-learn
 xgboost
+imbalanced-learn
+tensorflow>=2.15.0
+joblib
+
+# Interface
+gradio
