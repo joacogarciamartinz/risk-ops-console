@@ -1,3 +1,8 @@
+# ==========================================
+# Risk Ops Console - Dependencias
+# Python 3.11 recomendado
+# ==========================================
+
 # Core Data Science
 pandas
 numpy
