@@ -266,55 +266,93 @@ except Exception as e:
 # ============================================================================
 # FUNCIÓN DE PREDICCIÓN - ENSEMBLE HÍBRIDO
 # ============================================================================
+# ============================================================================
+# FUNCIÓN DE PREDICCIÓN - ENSEMBLE HÍBRIDO (CON DIAGNÓSTICO)
+# ============================================================================
 def predict_fraud_ensemble(features_dict):
     try:
-        # 1. Definir el orden EXACTO de las columnas que espera el Scaler
-        # El estándar de este dataset es: Time, V1...V28, Amount
+        print("\n" + "="*40)
+        print("🔍 INICIO DIAGNÓSTICO DE PREDICCIÓN")
+        print("="*40)
+
+        # 1. Definir orden esperado
         col_order = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
         
-        # 2. Crear un DataFrame de una sola fila con los nombres de columnas
-        # Esto asegura que el Scaler no se queje y mapee bien los datos
+        # 2. Crear DataFrame
         input_df = pd.DataFrame([features_dict])
         
-        # Reordenar las columnas para que coincidan con el entrenamiento
-        # Si falta alguna columna en features_dict, se rellena con 0.0
+        # Rellenar faltantes
+        filled_cols = []
         for col in col_order:
             if col not in input_df.columns:
                 input_df[col] = 0.0
+                filled_cols.append(col)
         
+        # Reordenar
         input_df = input_df[col_order]
 
-        # 3. Normalizar con el scaler (usando el DataFrame completo)
+        # --- DIAGNÓSTICO 1: DATOS CRUDOS ---
+        print(f"📥 Datos de entrada (Shape): {input_df.shape}")
+        print(f"🔹 Columnas rellenadas con 0.0: {len(filled_cols)} (Ej: {filled_cols[:3]}...)")
+        print(f"🔹 Valor 'V14' (Crudo): {input_df['V14'].values[0]}")
+        print(f"🔹 Valor 'Amount' (Crudo): {input_df['Amount'].values[0]}")
+
+        # VERIFICACIÓN CRÍTICA DEL SCALER
+        if hasattr(scaler, 'feature_names_in_'):
+            # Esto verifica si el orden de columnas del entrenamiento coincide con el actual
+            training_cols = list(scaler.feature_names_in_)
+            current_cols = list(input_df.columns)
+            if training_cols != current_cols:
+                print("\n⚠️ [ALERTA] DESORDEN DE COLUMNAS DETECTADO")
+                print(f"   El modelo se entrenó con: {training_cols[:5]}...")
+                print(f"   Estamos enviando:         {current_cols[:5]}...")
+                # Intentamos reordenar automáticamente para salvar la predicción
+                print("   -> Intentando reordenar automáticamente...")
+                input_df = input_df[training_cols]
+            else:
+                print("✅ Orden de columnas coincide con el entrenamiento.")
+
+        # 3. Normalizar
         features_scaled = scaler.transform(input_df)
         
+        # --- DIAGNÓSTICO 2: DATOS ESCALADOS ---
+        print("\n📊 Datos después del Scaler:")
+        print(f"   V14 Escalado: {features_scaled[0][col_order.index('V14')]:.4f}")
+        print(f"   Amount Escalado: {features_scaled[0][col_order.index('Amount')]:.4f}")
+        
+        # Si el valor escalado es absurdo (ej: > 100 o < -100), algo está mal con el scaler
+        if abs(features_scaled[0][col_order.index('V14')]) > 20:
+             print("⚠️ [ALERTA] El valor de V14 escalado es extremadamente alto/bajo. ¿Scaler corrupto?")
+
         # ====================================================================
-        # PREDICCIONES INDIVIDUALES
+        # PREDICCIONES
         # ====================================================================
         
         # Random Forest
         rf_prob = float(rf_model.predict_proba(features_scaled)[0][1])
+        print(f"\n🤖 Predicciones Brutas:")
+        print(f"   RF Prob:  {rf_prob:.4f}")
         
         # XGBoost
         xgb_prob = float(xgb_model.predict_proba(features_scaled)[0][1])
+        print(f"   XGB Prob: {xgb_prob:.4f}")
         
         # Red Neuronal
         nn_prob = float(nn_model.predict(features_scaled, verbose=0)[0][0])
+        print(f"   NN Prob:  {nn_prob:.4f}")
         
-        # ====================================================================
-        # ENSEMBLE: Promedio Ponderado (Ajustado)
-        # ====================================================================
-        # Le damos un poco más de peso a XGBoost y NN que suelen ser más precisos
+        # Ensemble
         weights = {'rf': 0.20, 'xgb': 0.40, 'nn': 0.40}
-        
         ensemble_score = (
             weights['rf'] * rf_prob +
             weights['xgb'] * xgb_prob +
             weights['nn'] * nn_prob
         )
-        
+        print(f"🏁 Score Final: {ensemble_score:.4f}")
+        print("="*40 + "\n")
 
         # ====================================================================
-        # CLASIFICACIÓN Y RECOMENDACIÓN
+        # LOGICA ORIGINAL DE CLASIFICACIÓN
         # ====================================================================
         
         is_fraud = ensemble_score > 0.5
@@ -355,6 +393,8 @@ def predict_fraud_ensemble(features_dict):
         
     except Exception as e:
         print(f"[ERROR] Error en predicción: {e}")
+        import traceback
+        traceback.print_exc() # Esto nos dará la línea exacta del error
         return {
             'ensemble_score': 0.5,
             'is_fraud': None,
@@ -363,7 +403,6 @@ def predict_fraud_ensemble(features_dict):
             'color': "gray",
             'error': str(e)
         }
-
 
 # ============================================================================
 # INTERFAZ GRADIO - UI PARA ANALISTA DE RIESGO
@@ -607,4 +646,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n[ERROR] Error al lanzar servidor: {e}")
         sys.exit(1)
+
 
