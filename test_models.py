@@ -201,11 +201,11 @@ else:
             
             print(f"\n📊 Resumen de capas:")
             for i, layer in enumerate(nn_model.layers):
-               try:
-    shape = layer.output_shape
-except AttributeError:
-    shape = "Multiple/Dynamic"
-print(f"   {i+1}. {layer.__class__.__name__} - Output: {shape}")
+               try:        
+                   shape = layer.output_shape
+               except AttributeError:
+                  shape = "Multiple/Dynamic"
+            print(f"   {i+1}. {layer.__class__.__name__} - Output: {shape}")
             
         except Exception as e:
             print(f"✗ ERROR al cargar red neuronal: {e}")
