@@ -266,59 +266,45 @@ except Exception as e:
 # ============================================================================
 # FUNCIÓN DE PREDICCIÓN - ENSEMBLE HÍBRIDO
 # ============================================================================
-
 def predict_fraud_ensemble(features_dict):
-    """
-    Realiza predicción usando el ensemble de 3 modelos.
-    
-    Arquitectura de Inferencia:
-        1. Normaliza features con StandardScaler
-        2. Obtiene probabilidad de cada modelo:
-           - Random Forest
-           - XGBoost
-           - Deep Learning
-        3. Calcula promedio ponderado (consenso)
-        4. Clasifica según umbral (>0.5 = Fraude)
-    
-    Args:
-        features_dict: dict con las features V1-V28, Amount, Time
-    
-    Returns:
-        dict con score, predicciones individuales y recomendación
-    """
-    
     try:
-        # Preparar array de features (debe coincidir con el orden de entrenamiento)
-        # Típicamente: [V1, V2, ..., V28, Amount, Time]
-        feature_names = [f'V{i}' for i in range(1, 29)] + ['Amount', 'Time']
-        feature_vector = np.array([[features_dict.get(f, 0.0) for f in feature_names]])
+        # 1. Definir el orden EXACTO de las columnas que espera el Scaler
+        # El estándar de este dataset es: Time, V1...V28, Amount
+        col_order = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
         
-        # Normalizar con el scaler entrenado
-        features_scaled = scaler.transform(feature_vector)
+        # 2. Crear un DataFrame de una sola fila con los nombres de columnas
+        # Esto asegura que el Scaler no se queje y mapee bien los datos
+        input_df = pd.DataFrame([features_dict])
+        
+        # Reordenar las columnas para que coincidan con el entrenamiento
+        # Si falta alguna columna en features_dict, se rellena con 0.0
+        for col in col_order:
+            if col not in input_df.columns:
+                input_df[col] = 0.0
+        
+        input_df = input_df[col_order]
+
+        # 3. Normalizar con el scaler (usando el DataFrame completo)
+        features_scaled = scaler.transform(input_df)
         
         # ====================================================================
         # PREDICCIONES INDIVIDUALES
         # ====================================================================
         
-        # Random Forest: predict_proba retorna [prob_clase_0, prob_clase_1]
+        # Random Forest
         rf_prob = float(rf_model.predict_proba(features_scaled)[0][1])
         
-        # XGBoost: mismo formato
+        # XGBoost
         xgb_prob = float(xgb_model.predict_proba(features_scaled)[0][1])
         
-        # Red Neuronal: output directo (sigmoid en última capa)
+        # Red Neuronal
         nn_prob = float(nn_model.predict(features_scaled, verbose=0)[0][0])
         
         # ====================================================================
-        # ENSEMBLE: Promedio Ponderado
+        # ENSEMBLE: Promedio Ponderado (Ajustado)
         # ====================================================================
-        # Puedes ajustar estos pesos según performance en validación
-        
-        weights = {
-            'rf': 0.30,   # Random Forest: bueno en interpretabilidad
-            'xgb': 0.35,  # XGBoost: mejor en datos tabulares
-            'nn': 0.35    # Deep Learning: captura no-linealidades
-        }
+        # Le damos un poco más de peso a XGBoost y NN que suelen ser más precisos
+        weights = {'rf': 0.20, 'xgb': 0.40, 'nn': 0.40}
         
         ensemble_score = (
             weights['rf'] * rf_prob +
@@ -326,6 +312,7 @@ def predict_fraud_ensemble(features_dict):
             weights['nn'] * nn_prob
         )
         
+
         # ====================================================================
         # CLASIFICACIÓN Y RECOMENDACIÓN
         # ====================================================================
@@ -398,15 +385,11 @@ def create_gradio_interface():
         return None
     
     def analyze_transaction(v14, v10, v12, v17, v11, amount, time):
-        """
-        Wrapper para Gradio - maneja inputs de la UI y formatea output.
-        """
+        # 1. Empezamos con el diccionario de promedios normales
+        # Esto asegura que las 24 variables que no tienen slider estén en "modo normal"
+        features = means_normal.copy()
         
-        # Construir diccionario de features
-        # Las features no ajustables se inicializan en 0 (valores normalizados)
-        features = {f'V{i}': 0.0 for i in range(1, 29)}
-        
-        # Actualizar con valores ajustables del UI
+        # 2. Sobrescribimos con lo que el usuario movió en la UI
         features['V14'] = v14
         features['V10'] = v10
         features['V12'] = v12
@@ -414,6 +397,9 @@ def create_gradio_interface():
         features['V11'] = v11
         features['Amount'] = amount
         features['Time'] = time
+        
+        # 3. Ejecutar predicción
+        result = predict_fraud_ensemble(features)
         
         # Ejecutar predicción
         result = predict_fraud_ensemble(features)
@@ -621,3 +607,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n[ERROR] Error al lanzar servidor: {e}")
         sys.exit(1)
+
