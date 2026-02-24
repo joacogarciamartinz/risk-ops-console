@@ -43,7 +43,7 @@ Herramienta de análisis de riesgo que utiliza un **ensemble de 3 modelos de IA*
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/risk-ops-console.git
+git clone https://github.com/joaquingarciamartinz/risk-ops-console.git
 cd risk-ops-console
 
 # 2. Ejecutar el launcher (hace todo automáticamente)
