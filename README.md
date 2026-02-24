@@ -1,4 +1,4 @@
-## Creado por: Joaquín García Martínez, con Google Gemini como al(IA)do
+## Creado por: Joaquín García Martínez
 
 # 🛡️ Risk Ops Console
 
@@ -297,7 +297,7 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 - Dataset: [Machine Learning Group - ULB](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
 - Frameworks: TensorFlow, Scikit-learn, XGBoost, Gradio
 - Técnicas: SMOTE para balanceo de clases
-
+- Al(IA)dos: Google Gemini
 ---
 
 ## 📞 Soporte
