@@ -1,7 +1,7 @@
 ## Creado por: Joaquín García Martínez
 
 # 🛡️ Risk Ops Console
-
+![Consola de Risk Ops en acción.](riskops.PNG)
 Sistema de **detección de fraude en tiempo real** mediante Inteligencia Artificial híbrida.
 
 ![Version](https://img.shields.io/badge/version-1.0--Hybrid-blue)
