@@ -29,7 +29,7 @@ Herramienta de análisis de riesgo que utiliza un **ensemble de 3 modelos de IA*
 ✅ **Optimizado para CPU** - Funciona sin GPU  
 ✅ **Plug-and-Play** - Instalación en 3 pasos  
 ✅ **Top Features Ajustables** - Simulación interactiva de transacciones
-
+🔍 _Nota técnica: Las variables V1-V28 representan componentes obtenidos mediante **PCA**. Se seleccionaron los sliders para permitir la simulación de escenarios basados en la importancia de características (Feature Importance) detectada por el modelo XGBoost_
 ---
 
 ## 🚀 Instalación Rápida
@@ -302,7 +302,7 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 ## 📞 Soporte
 
-- **Issues:** [GitHub Issues](https://github.com/tu-usuario/risk-ops-console/issues)
+- **Issues:** [GitHub Issues](https://github.com/joacogarciamartinz/risk-ops-console/issues)
 - **Documentación:** Este README
 - **Diagnóstico:** Ejecuta `test_models.py`
 
